@@ -45,7 +45,7 @@ public class HotelSearchTest {
                     q.matchAll(ma -> ma)
                 ), HotelDoc.class
         );
-        log.info(objectMapper.writeValueAsString(response));
+        log.info(response.toString());
     }
 
     @Test

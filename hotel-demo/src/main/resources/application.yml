@@ -1,11 +1,13 @@
 server:
-  port: 8001
+  port: 8899
 spring:
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
     url: jdbc:mysql://192.168.50.2:3306/es_demo?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&serverTimezone=GMT%2B8&rewriteBatchedStatements=true
     username: zhangnima
     password: mysql
+  elasticsearch:
+    uris: 192.168.50.2:9200
 logging:
   level:
     org.springframework: info

@@ -1,5 +1,7 @@
 package com.zhangnima.hotel.pojo;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import co.elastic.clients.json.JsonpDeserializable;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,6 +16,7 @@ public class HotelDoc {
     private Integer score;
     private String brand;
     private String city;
+    @JsonProperty("star_name")
     private String starName;
     private String business;
     private String location;
