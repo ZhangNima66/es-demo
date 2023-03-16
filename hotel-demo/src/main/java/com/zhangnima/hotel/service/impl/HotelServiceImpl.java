@@ -1,6 +1,7 @@
 package com.zhangnima.hotel.service.impl;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -9,6 +10,7 @@ import org.elasticsearch.client.RestClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
@@ -20,6 +22,7 @@ import com.zhangnima.hotel.pojo.result.PageResult;
 import com.zhangnima.hotel.service.IHotelService;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.DistanceUnit;
 import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
@@ -75,6 +78,10 @@ public class HotelServiceImpl extends ServiceImpl<HotelMapper, Hotel> implements
         if (StringUtils.isNotBlank(sortBy) && !"default".equals(sortBy)) {
             builder.sort(s -> s.field(sf -> sf.field(sortBy).order(SortOrder.Desc)));
         }
+        String location = request.getLocation();
+        if (StringUtils.isNotBlank(location)) {
+            builder.sort(s -> s.geoDistance(sg -> sg.field("location").location(sgl -> sgl.text(location)).order(SortOrder.Asc).unit(DistanceUnit.Kilometers)));
+        }
         int page = request.getPage();
         int size = request.getSize();
         builder.from((page - 1) * size);
@@ -87,7 +94,14 @@ public class HotelServiceImpl extends ServiceImpl<HotelMapper, Hotel> implements
     private PageResult handleResponse(SearchResponse<HotelDoc> response) {
         PageResult result = new PageResult();
         long total = response.hits().total() != null ? response.hits().total().value() : 0;
-        List<HotelDoc> hotels = response.hits().hits().stream().map(Hit::source).collect(Collectors.toList());
+        List<HotelDoc> hotels = response.hits().hits().stream().map(hit -> {
+            HotelDoc hotel = hit.source();
+            String sort = CollectionUtils.isNotEmpty(hit.sort()) ? hit.sort().get(0) : null;
+            if (hotel != null) {
+                hotel.setDistance(sort);
+            }
+            return hotel;
+        }).collect(Collectors.toList());
 
         result.setTotal(total);
         result.setHotels(hotels);
