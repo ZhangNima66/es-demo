@@ -24,6 +24,7 @@ import com.zhangnima.hotel.service.IHotelService;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.DistanceUnit;
 import co.elastic.clients.elasticsearch._types.SortOrder;
+import co.elastic.clients.elasticsearch._types.query_dsl.FunctionBoostMode;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
@@ -47,32 +48,38 @@ public class HotelServiceImpl extends ServiceImpl<HotelMapper, Hotel> implements
         SearchRequest.Builder builder = new SearchRequest.Builder();
         builder.index(HOTEL_ES_INDEX);
         builder.query(
-            q -> q.bool(b -> {
-                String key = request.getKey();
-                if (StringUtils.isBlank(key)) {
-                    b.must(mq -> mq.matchAll(ma -> ma));
-                } else {
-                    b.must(mq -> mq.match(m -> m.field("all").query(key)));
-                }
-                String city = request.getCity();
-                if (StringUtils.isNotBlank(city)) {
-                    b.filter(ft -> ft.term(ftt -> ftt.field("city").value(city)));
-                }
-                String brand = request.getBrand();
-                if (StringUtils.isNotBlank(brand)) {
-                    b.filter(ft -> ft.term(ftt -> ftt.field("brand").value(brand)));
-                }
-                String starName = request.getStarName();
-                if (StringUtils.isNotBlank(starName)) {
-                    b.filter(ft -> ft.term(ftt -> ftt.field("star_name").value(starName)));
-                }
-                Integer minPrice = request.getMinPrice();
-                Integer maxPrice = request.getMaxPrice();
-                if (minPrice != null && maxPrice != null) {
-                    b.filter(ft -> ft.range(ftr -> ftr.field("price").gte(JsonData.of(minPrice)).lte(JsonData.of(maxPrice))));
-                }
-                return b;
-            })
+            q -> q.functionScore(
+                qf -> qf.query(
+                    qfq -> qfq.bool(b -> {
+                        String key = request.getKey();
+                        if (StringUtils.isBlank(key)) {
+                            b.must(mq -> mq.matchAll(ma -> ma));
+                        } else {
+                            b.must(mq -> mq.match(m -> m.field("all").query(key)));
+                        }
+                        String city = request.getCity();
+                        if (StringUtils.isNotBlank(city)) {
+                            b.filter(ft -> ft.term(ftt -> ftt.field("city").value(city)));
+                        }
+                        String brand = request.getBrand();
+                        if (StringUtils.isNotBlank(brand)) {
+                            b.filter(ft -> ft.term(ftt -> ftt.field("brand").value(brand)));
+                        }
+                        String starName = request.getStarName();
+                        if (StringUtils.isNotBlank(starName)) {
+                            b.filter(ft -> ft.term(ftt -> ftt.field("star_name").value(starName)));
+                        }
+                        Integer minPrice = request.getMinPrice();
+                        Integer maxPrice = request.getMaxPrice();
+                        if (minPrice != null && maxPrice != null) {
+                            b.filter(ft -> ft.range(ftr -> ftr.field("price").gte(JsonData.of(minPrice)).lte(JsonData.of(maxPrice))));
+                        }
+                        return b;
+                    })
+                ).functions(
+                    f -> f.filter(fq -> fq.term(fqt -> fqt.field("isAd").value(true))).weight(10D)
+                ).boostMode(FunctionBoostMode.Sum)
+            )
         );
         String sortBy = request.getSortBy();
         if (StringUtils.isNotBlank(sortBy) && !"default".equals(sortBy)) {
