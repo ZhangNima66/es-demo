@@ -26,6 +26,7 @@ import co.elastic.clients.elasticsearch.indices.DeleteIndexResponse;
 import co.elastic.clients.elasticsearch.indices.ExistsRequest;
 import co.elastic.clients.elasticsearch.indices.GetIndexRequest;
 import co.elastic.clients.elasticsearch.indices.GetIndexResponse;
+import co.elastic.clients.elasticsearch.indices.IndexSettings;
 import co.elastic.clients.elasticsearch.indices.PutMappingRequest;
 import co.elastic.clients.elasticsearch.indices.PutMappingResponse;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;
@@ -60,7 +61,7 @@ public class HotelIndexTest {
         propertyMap.put("pic", new Property(new KeywordProperty.Builder().index(false).build()));
         propertyMap.put("all", new Property(new TextProperty.Builder().analyzer("ik_max_word").copyTo("all").build()));
 
-        TypeMapping typeMapping = new Builder().properties(propertyMap).build();
+        TypeMapping typeMapping = new TypeMapping.Builder().properties(propertyMap).build();
         CreateIndexResponse response = client.indices().create(
             new CreateIndexRequest.Builder()
                 .index("hotel")

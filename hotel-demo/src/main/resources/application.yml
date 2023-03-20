@@ -8,7 +8,3 @@ spring:
     password: mysql
   elasticsearch:
     uris: 192.168.50.2:9200
-logging:
-  level:
-    org.springframework: info
-    com.zhangnima: debug

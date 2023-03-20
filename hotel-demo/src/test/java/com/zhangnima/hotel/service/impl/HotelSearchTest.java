@@ -2,17 +2,12 @@ package com.zhangnima.hotel.service.impl;
 
 
 import java.io.IOException;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Collections;
 
-import org.apache.http.HttpHost;
-import org.elasticsearch.client.RestClient;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zhangnima.hotel.pojo.HotelDoc;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
@@ -20,22 +15,16 @@ import co.elastic.clients.elasticsearch._types.DistanceUnit;
 import co.elastic.clients.elasticsearch._types.FieldSort;
 import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch._types.query_dsl.FunctionBoostMode;
-import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
-import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.json.JsonData;
-import co.elastic.clients.json.jackson.JacksonJsonpMapper;
-import co.elastic.clients.transport.rest_client.RestClientTransport;
-import lombok.extern.log4j.Log4j2;
+import co.elastic.clients.util.NamedValue;
 import lombok.extern.slf4j.Slf4j;
 
 @SpringBootTest
 @Slf4j
 public class HotelSearchTest {
-    private ElasticsearchClient client;
-
     @Autowired
-    private ObjectMapper objectMapper;
+    private ElasticsearchClient client;
 
     @Test
     void matchAll() throws IOException {
@@ -216,6 +205,7 @@ public class HotelSearchTest {
         log.info(response.toString());
         log.warn(response.hits().hits().size() + "");
     }
+
     @Test
     void highlight() throws IOException {
         SearchResponse<HotelDoc> response = client.search(
@@ -234,14 +224,31 @@ public class HotelSearchTest {
         log.info(response.toString());
     }
 
+    @Test
+    void aggs() throws IOException {
+        SearchResponse<HotelDoc> response = client.search(
+            qr -> qr.index("hotel").query(q -> q.matchAll(ma -> ma))
+                .size(0)
+                .aggregations("brandAggs",
+                    ag -> ag.terms(
+                            agt -> agt.field("brand")
+                                .order(Collections.singletonList(new NamedValue<>("brandStat.avg", SortOrder.Desc)))
+                                .size(10))
+                        .aggregations("brandStat", agag -> agag.stats(ags -> ags.field("score")))
+                ), HotelDoc.class
+        );
+        log.info(response.toString());
+    }
 
-    @BeforeEach
-    void setUp() {
-        RestClient restClient = RestClient.builder(
-            new HttpHost("192.168.50.2", 9200)
-        ).build();
-
-        RestClientTransport transport = new RestClientTransport(restClient, new JacksonJsonpMapper(objectMapper));
-        this.client = new ElasticsearchClient(transport);
+    @Test
+    void suggestion() throws IOException {
+        SearchResponse<HotelDoc> response = client.search(
+            qr -> qr.index("hotel")
+                .suggest(
+                    sg -> sg.text("sh")
+                        .suggesters("suggestions", fsg -> fsg.completion(sc -> sc.field("suggestion").skipDuplicates(true).size(10)))
+                ), HotelDoc.class
+        );
+        log.info(response.toString());
     }
 }

@@ -81,8 +81,8 @@ public class HotelDocTest {
 
         BulkRequest.Builder builder = new BulkRequest.Builder();
         hotels.forEach(hotel -> builder.operations(
-            op -> op.create(create ->
-                create.index("hotel")
+            op -> op.index(index ->
+                index.index("hotel")
                     .id(hotel.getId().toString())
                     .document(new HotelDoc(hotel))
             )

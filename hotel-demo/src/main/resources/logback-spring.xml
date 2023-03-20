@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <property name="LOG_PATH" value="${LOG_PATH:-/data/logs/es-demo}"/>
+    <property name="CHAR_SET" value="UTF-8"/>
+    <conversionRule conversionWord="clr" converterClass="org.springframework.boot.logging.logback.ColorConverter"/>
+    <conversionRule conversionWord="wex" converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter"/>
+    <conversionRule conversionWord="wEx" converterClass="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter"/>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <charset>${CHAR_SET}</charset>
+            <pattern>%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%5p) %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n%wEx</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="TRACER_TO_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/filebeat/es-tracer.log</file>
+        <encoder>
+            <charset>${CHAR_SET}</charset>
+            <pattern>%d{HH:mm:ss.SSS} %5p [%t] %-40.40logger{39} : %m%n%wEx{short}</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <FileNamePattern>${LOG_PATH}/filebeat/game_event.log.%d{yyyy-MM-dd}</FileNamePattern>
+            <MaxHistory>7</MaxHistory>
+        </rollingPolicy>
+    </appender>
+
+    <logger name="tracer" level="trace" additivity="true">
+        <appender-ref ref="TRACER_TO_FILE"/>
+    </logger>
+
+    <logger name="com.zhangnima" level="DEBUG"/>
+    <logger name="org.springframework" level="INFO"/>
+    <logger name="org.apache.http" level="INFO"/>
+    <root level="DEBUG">
+        <appender-ref ref="CONSOLE" />
+    </root>
+</configuration>
