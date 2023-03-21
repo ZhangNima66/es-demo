@@ -1,13 +1,11 @@
 server:
-  port: 8899
+  port: 8898
 spring:
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
     url: jdbc:mysql://192.168.50.2:3306/es_demo?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&serverTimezone=GMT%2B8&rewriteBatchedStatements=true
     username: zhangnima
     password: mysql
-  elasticsearch:
-    uris: 192.168.50.2:9200
   rabbitmq:
     host: 192.168.50.2
     port: 5672

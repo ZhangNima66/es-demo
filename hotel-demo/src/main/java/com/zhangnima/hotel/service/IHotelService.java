@@ -38,4 +38,8 @@ public interface IHotelService extends IService<Hotel> {
      * @return 补全列表
      */
     List<String> suggestion(String key) throws IOException;
+
+    void insertDoc(Long hotelId) throws IOException;
+
+    void deleteDoc(Long hotelId) throws IOException;
 }

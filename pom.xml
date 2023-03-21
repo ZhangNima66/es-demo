@@ -17,6 +17,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>hotel-demo</module>
+        <module>hotel-admin</module>
         <module>hello</module>
     </modules>
 
@@ -53,6 +54,14 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
             </plugin>
         </plugins>
     </build>

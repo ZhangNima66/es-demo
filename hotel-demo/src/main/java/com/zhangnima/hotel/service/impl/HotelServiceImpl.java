@@ -151,4 +151,22 @@ public class HotelServiceImpl extends ServiceImpl<HotelMapper, Hotel> implements
         return options.stream().map(CompletionSuggestOption::text).collect(Collectors.toList());
     }
 
+    @Override
+    public void insertDoc(Long hotelId) throws IOException {
+        Hotel hotel = getById(hotelId);
+        client.index(
+            index -> index.index("hotel")
+                .id(hotelId.toString())
+                .document(new HotelDoc(hotel))
+        );
+    }
+
+    @Override
+    public void deleteDoc(Long hotelId) throws IOException {
+        client.delete(
+            delete -> delete.index("hotel")
+                .id(hotelId.toString())
+        );
+    }
+
 }
